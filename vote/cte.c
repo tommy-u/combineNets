@@ -6,8 +6,9 @@ double* evaluate(struct fann *ann, struct fann_train_data *data){
   fann_type *calc_out;
   fann_type input[2];
   int i;
-  double setError0 = 0, setError1 = 0;
+  double error0, error1,setError0 = 0, setError1 = 0;
   static double ret[2];
+  printf("bits listed high bit -> low bit \n");
   for(i = 0; i< 4; i++)
     {
       if(i%2 == 0)
@@ -20,12 +21,14 @@ double* evaluate(struct fann *ann, struct fann_train_data *data){
       else
 	input[1] = 1;
       calc_out = fann_run(ann, input);
+      error0 = fabs(data->output[i][0] - calc_out[0]);
+      error1 = fabs(data->output[i][1] - calc_out[1]);
       printf("Input:( %f, %f) -> Output:( %f, %f) -> Error:( %f, %f)\n",
-	     input[0], input[1], calc_out[0], calc_out[1], 
-	     fabs(data->output[i][0] - calc_out[0]), fabs(data->output[i][1] - calc_out[1]));
+	     input[1], input[0], calc_out[1], calc_out[0], 
+	     error1, error0);
 
-      setError0 += fabs(calc_out[0]); 
-      setError1 += fabs(calc_out[1]);
+      setError0 += error0; 
+      setError1 += error1;
     }
   //This could be calculated smarter
   printf("bit0 set error: %f \n", setError0);

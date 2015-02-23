@@ -1,6 +1,6 @@
 #include "fann.h"
 #include <stdlib.h>
-//#define DEBUGCONNECTIONS
+#define DEBUGCONNECTIONS
 
 /*
   Combining 2 networks with same architecture.
@@ -98,7 +98,7 @@ int main() {
   const unsigned int epochs_between_reports = 10;
   struct fann *ann, *bnn, *cnn;
   struct fann_connection *a_con, *b_con;
-  int i;
+
   
 //Init  
   ann = init(layers, input, hid, out, &ann);
@@ -122,6 +122,7 @@ int main() {
   cnn = combineNets(input, hid, out, layers, a_con, b_con);
 
 #ifdef DEBUGCONNECTIONS
+  int i;
   for(i = 0; i < cnn->total_connections; i++)
     {
       printf("weight %d = %f \n", i, cnn->weights[i]);
