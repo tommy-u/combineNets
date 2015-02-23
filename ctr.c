@@ -1,10 +1,16 @@
 #include "fann.h"
 #include <stdlib.h>
 /*
-  First attempt at combining two networks into one. No idea how to handle 
-  the bias neurons properly. Attempting Scheme 2 as per my notes.
-  (not yet implementing the vote).
   
+  This is a minimal prototype. Connections are hardcoded for cnn. 
+  
+  Combining 2 networks with same architecture. First net predicts bit 0, 2nd net 
+  predicts bit 1. 
+  Interested in: 1 determining a better error criterion. 2 considering over fitting. 
+  3 allowing multiple connections from bias node so an exponentially weighted scheme can
+  be attempted. 4 generalization: i any number of nets (easy?) ii any hidden layer structure
+  but same input and output iii any input output relation iv any number of layers 
+  (shortcut connections needed?)  
 */
 
 struct fann* init(const unsigned int layers, const unsigned int input, const unsigned int hid, const unsigned int out, struct fann **ann)
@@ -40,7 +46,6 @@ void printConnTable(struct fann *ann, struct fann *bnn, struct fann_connection *
       printf("%f \t %f \n", a_con[i].weight, b_con[i].weight);
       printf("\n");
     }
-
 }
 
 struct fann* combineNets(const unsigned int input, const unsigned int hid, const unsigned int out, const unsigned int layers, struct fann_connection *a_con, struct fann_connection *b_con) {
@@ -101,13 +106,6 @@ int main()
   fann_train_on_file(ann, "xor.data", max_epochs, epochs_between_reports, desired_error);
   fann_train_on_file(bnn, "xor.data", max_epochs, epochs_between_reports, desired_error);
   
-  /*for(i = 0; i < 12; i++)
-    {
-      ann->weights[i] = i;
-      bnn->weights[i] = (float) i / 10;
-    }
-  */
-
   //Each connection struct is 2 ints and a fann_type. Here the fann_type is 
   //double, but sizeof(struct fann_connection) == 12. Is this a bug or 
   //expected? Would be right if fann_type were int. 
@@ -117,8 +115,6 @@ int main()
   printConnTable(ann, bnn, a_con, b_con);
   
   cnn = combineNets(input, hid, out, layers, a_con, b_con);
-
-  
 
   for(i = 0; i < cnn->total_connections; i++)
     {
@@ -135,7 +131,6 @@ int main()
   free(a_con);
   free(b_con);
   return 0;
-  
-  
+   
 }
 

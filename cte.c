@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "floatfann.h"
 #include <math.h>
+
 double* evaluate(struct fann *ann, struct fann_train_data *data){
   fann_type *calc_out;
   fann_type input[2];
