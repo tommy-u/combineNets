@@ -49,45 +49,78 @@ void printConnTable(struct fann *ann, struct fann *bnn, struct fann_connection *
       printf("\n");
     }
 }
+void joinNets(struct fann *ann, struct fann *bnn, struct fann *cnn, struct fann_connection *a_con, struct fann_connection *b_con, struct fann_connection *c_con, unsigned int *numNeur_a, unsigned int *numNeur_b){
+  int i, j = 0, k = 0;
+  
+  //Assumes fully connected  
+  //Assumes input & output same size.
+  //Assumes one bias neuron in each non output layer (can this be change?).
+  int numHiddenNeur = numNeur_a[1] + numNeur_b[1];
+  int inToHidConn = (numNeur_a[0] + 1) * numHiddenNeur;
+  int hidToOutConn = (numHiddenNeur + 1) * numNeur_a[2];
+  fann_get_connection_array(cnn,c_con);
+  for(i = 0; i < cnn -> total_connections; i++) {
+    printf("%d, %d, %f \n", c_con[i].from_neuron, c_con[i].to_neuron, c_con[i].weight);      
+    //L0 -> L1 conn
+    if(i < inToHidConn){
+      //Connecting TO neurons corresponding to ann when true
+      if ( c_con[i].to_neuron > numNeur_a[0] && c_con[i].to_neuron <= numNeur_a[0] + numNeur_a[1]  ){
+        printf("i = %d, from ann[%d]\n",i, j++);
+      }else {
+        printf("i = %d, from bnn[%d]\n",i, k++);
+      }
+    //L1 -> L2 conn
+    }else{
+      if ( c_con[i].from_neuron > numNeur_a[0] && c_con[i].from_neuron <= numNeur_a[0] + numNeur_a[1]  ){
+        printf("i = %d, from ann[%d]\n",i, j++);
+      }else {
+        printf("i = %d, from bnn[%d]\n",i, k++);
+      }
+    }
+  }
+}
 
-struct fann* combineNets(const unsigned int input, const unsigned int hid, const unsigned int out, const unsigned int layers, struct fann_connection *a_con, struct fann_connection *b_con) {
-  int i,j=0,k=0;
+struct fann* combineNets(struct fann *ann, struct fann *bnn, struct fann_connection *a_con, struct fann_connection *b_con) {
+  unsigned int num_layers, *numNeur_a, *numNeur_b; 
   struct fann *cnn;
+  struct fann_connection *c_con;
   //Assumes ann and bnn have identical structure. 
   //New net will be 2x as many in hidden.
-  cnn = init(layers, input, hid*2, out, &cnn);
+  num_layers = fann_get_num_layers(ann);
 
-  //hard coding my solution, sorry for what you're about to witness
-  //j walks a_conn[j].weight, k walks b_conn[k].weight
+  if(num_layers != fann_get_num_layers(bnn)){
+    printf("layers unequal \n");
+    exit(1);
+  }
 
-  //Writing this out pedantically so I don't make a dumb mistake.
-  for(i = 0; i < cnn -> total_connections; i++)
-    {
-      if(i <= 5) {
-	cnn->weights[i] = a_con[j++].weight;
-	continue;
-      }
-      else if(i >= 6 && i <= 11){
-	cnn->weights[i] = b_con[k++].weight;
-	continue;
-      }
-      else if(i == 12 || i == 13)
-	cnn->weights[i] = a_con[j++].weight;
-      //also need to advance k so we skip those connections
-      else if(i == 14 || i == 15){
-	cnn->weights[i] = 0;
-	k++;
-      }
-      else if(i == 16)
-	{
-	cnn->weights[i] = a_con[j++].weight;
-	k++;
-	}
-      else if(i == 17 || i == 18)
-	cnn->weights[i] = 0;     
-      else if(i >= 19 && i <= 21)
-	cnn->weights[i] = b_con[k++].weight;  
-    }
+  numNeur_a = malloc( (num_layers * sizeof(unsigned int)));
+  if (numNeur_a == NULL){
+    printf("malloc error \n");
+    exit (1);
+  }
+  numNeur_b = malloc( (num_layers * sizeof(unsigned int)));
+  if (numNeur_b == NULL){
+    printf("malloc error \n");
+    exit (1);
+  }
+
+  fann_get_layer_array(ann, numNeur_a);
+  fann_get_layer_array(bnn, numNeur_b);
+
+  if( ( numNeur_a[0] != numNeur_b[0] ) || ( numNeur_a[num_layers-1] != numNeur_b[num_layers-1] ) ) {
+    printf("num input or output unequal \n");
+    exit (1);
+  }  
+
+  //assumes 3 layers
+  cnn = init(num_layers, numNeur_a[0], numNeur_a[1] + numNeur_b[1], numNeur_a[num_layers-1], &cnn);
+  c_con = allocate(cnn, &c_con);
+
+  //Fully connect net, then nuke inferior connections. 
+  joinNets(ann, bnn, cnn, a_con, b_con, c_con, numNeur_a, numNeur_b);
+  free(numNeur_a);
+  free(numNeur_b);  
+  free(c_con);
   return cnn;
 }
 
@@ -119,7 +152,7 @@ int main() {
 #endif
 
   //Combine
-  cnn = combineNets(input, hid, out, layers, a_con, b_con);
+  cnn = combineNets(ann, bnn, a_con, b_con);
 
 #ifdef DEBUGCONNECTIONS
   int i;
