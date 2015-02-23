@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "floatfann.h"
 #include <math.h>
-//#define DEBUG
+#define DEBUG
 double* evaluate(struct fann *ann, struct fann_train_data *data){
   fann_type *calc_out;
   fann_type input[2];
@@ -51,15 +51,14 @@ int main()
   struct fann_train_data *data = fann_read_train_from_file("xor.data");
   //Assume same num input & output for ann, bnn, cnn.
 
-  unsigned int numOutput;
+  unsigned int numOutput= fann_get_num_output(ann);
   double *e1, *e2, *e3;
-  numOutput = fann_get_num_output(ann);
-  e1 = malloc( (numOutput * sizeof(double)));
+    e1 = malloc( (numOutput * sizeof(double)));
   if (e1 == NULL){
     printf("malloc error \n");
     exit (1);
   }
-  e2 = malloc( (numOutput * sizeof(double)));
+  e2= malloc( (numOutput * sizeof(double)));
   if (e2 == NULL){
     printf("malloc error \n");
     exit (1);
@@ -90,6 +89,7 @@ int main()
   fann_destroy(ann);
   fann_destroy(bnn);
   fann_destroy(cnn);
+  fann_destroy_train(data);
   //When I attempt to free these, it says pointer is not allocated, but 
   //I think they are... TODO fix this
   //printf("here1\n");

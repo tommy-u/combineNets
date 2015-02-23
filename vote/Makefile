@@ -7,3 +7,5 @@ cte:
 	$(CC) $@.c $(CFlags) $@
 clean:
 	$(RM) $(CLEAN)
+cn:
+	$(RM) *.net
