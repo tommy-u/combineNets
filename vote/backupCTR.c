@@ -5,6 +5,8 @@
 //#define DEBUG
 /*
   Combining 2 networks with same architecture.
+  This is a minimal prototype. Connections are hardcoded for cnn. ann predicts output bit 0,
+  bnn predicts output bit 1. This will be changed to allow for vote etc.
     
   Interested in: 1 determining a better error criterion. 2 considering over fitting. 
   3 allowing multiple connections from bias node so an exponentially weighted scheme can
@@ -96,6 +98,7 @@
   }
   void joinNets(struct fann *ann, struct fann *bnn, struct fann *cnn, struct fann_connection *a_con, struct fann_connection *b_con, struct fann_connection *c_con, unsigned int *numNeur_a, unsigned int *numNeur_b, double *e_a, double *e_b){
     int i, ct, j = 0, k = 0;
+//  int out = fann_get_num_output(ann);
   //Assumes fully connected  
   //Assumes input & output same size.
   //Assumes one bias neuron in each non output layer (can this be change?).
@@ -116,158 +119,161 @@
     }
 
   //L1 -> L2 conn
-    
+    int oldJ = j, oldK = k;
     int outBit;
     //Loop over output bits.
-    for(outBit = 0; outBit < fann_get_num_output(cnn); outBit++){
-      int oldJ = j, oldK = k;
-      //Loop over arriving connections
-      for(ct = 0; ct < numHiddenNeur + 1; ct ++) {
-        //Determine from neuron
-        int modHidden = (i - inToHidConn) % (numHiddenNeur + 1);
-        //Determine which net minimizes error criterion.
-        //Redundant for clarity
-        if(e_a[outBit] < e_b[outBit])
-        {
-          //Add from ann.
+    for(outBit = 0; outBit < fann_get_num_output(cnn); outBit++) {
+      //Determine which net will decide the bit based on error.
+      if(e_a[outBit] < e_b[outBit]){
+        //Connect ann to output bit.
+        for(ct = 0; ct < numHiddenNeur + 1; ct++){
+          int modHidden = (i - inToHidConn) % (numHiddenNeur + 1);
+          //Ann's non bias connections.
           if(modHidden < numNeur_a[1]){
             cnn->weights[i++] = a_con[j++ + ((1 + numNeur_a[1]) * outBit)].weight; 
-          //Zero bnn connections.
-          }else if(modHidden >= numNeur_a[1] && modHidden < numHiddenNeur){
+            printf("j = %d, outBit = %d\n",j-1, outBit);
+          //Nuke the connections to bnn.
+          }else if(modHidden >= numNeur_a[1] && modHidden < numHiddenNeur) {
             cnn->weights[i++] = 0;
-          //Don't forget bias. 
+          //Don't forget the bias
           }else{
             cnn->weights[i++] = a_con[j++ + ((1 + numNeur_a[1]) * outBit)].weight; 
+            printf("j = %d, outBit = %d\n",j-1, outBit);
           }
-        }else{
-          //Zero ann connections.
+          //In the general case we may have to repeat
+        }
+        j = oldJ;
+      //Again except connect bnn, not ann. 
+      }else{
+        for(ct = 0; ct < numHiddenNeur + 1; ct++){
+          int modHidden = (i - inToHidConn) % (numHiddenNeur + 1);
           if(modHidden < numNeur_a[1]){
             cnn->weights[i++] = 0;
-          //Add from bnn.
-          }else if(modHidden >= numNeur_a[1] && modHidden < numHiddenNeur){
-            cnn->weights[i++] = b_con[k++ + ((1 + numNeur_b[1]) * outBit ) ].weight;           
-          //Don't forget bias.
+          }else if(modHidden >= numNeur_a[1] && modHidden < numHiddenNeur) {
+            cnn->weights[i++] = b_con[k++ + ((1 + numNeur_b[1]) * outBit ) ].weight;
+            printf("k = %d\n", k-1);
+
           }else{
-            cnn->weights[i++] = b_con[k++ + ((1 + numNeur_b[1]) * outBit ) ].weight;           
+            cnn->weights[i++] = b_con[k++ + ((1 + numNeur_b[1]) * outBit ) ].weight;
+            printf("k = %d\n", k-1);            
           }
         }
+        k = oldK;
       }
-      //Can we elimate this for the general case?
-      j = oldJ; k = oldK;
     }
   }
 
-struct fann* combineNets(struct fann *ann, struct fann *bnn, struct fann_connection *a_con, struct fann_connection *b_con, struct fann_train_data *data) {
-  unsigned int num_layers, *numNeur_a, *numNeur_b; 
-  struct fann *cnn;
-  struct fann_connection *c_con;
+  struct fann* combineNets(struct fann *ann, struct fann *bnn, struct fann_connection *a_con, struct fann_connection *b_con, struct fann_train_data *data) {
+    unsigned int num_layers, *numNeur_a, *numNeur_b; 
+    struct fann *cnn;
+    struct fann_connection *c_con;
   //Assumes ann and bnn have identical structure. 
   //New net will be 2x as many in hidden.
-  num_layers = fann_get_num_layers(ann);
-  if(num_layers != fann_get_num_layers(bnn)){
-    printf("layers unequal \n");
-    exit(1);
-  }
+    num_layers = fann_get_num_layers(ann);
+    if(num_layers != fann_get_num_layers(bnn)){
+      printf("layers unequal \n");
+      exit(1);
+    }
   //Neuron counts
-  numNeur_a = malloc( (num_layers * sizeof(unsigned int)));
-  if (numNeur_a == NULL){
-    printf("malloc error \n");
-    exit (1);
-  }
-  numNeur_b = malloc( (num_layers * sizeof(unsigned int)));
-  if (numNeur_b == NULL){
-    printf("malloc error \n");
-    exit (1);
-  }
-  fann_get_layer_array(ann, numNeur_a);
-  fann_get_layer_array(bnn, numNeur_b);
+    numNeur_a = malloc( (num_layers * sizeof(unsigned int)));
+    if (numNeur_a == NULL){
+      printf("malloc error \n");
+      exit (1);
+    }
+    numNeur_b = malloc( (num_layers * sizeof(unsigned int)));
+    if (numNeur_b == NULL){
+      printf("malloc error \n");
+      exit (1);
+    }
+    fann_get_layer_array(ann, numNeur_a);
+    fann_get_layer_array(bnn, numNeur_b);
 
-  if( ( numNeur_a[0] != numNeur_b[0] ) || ( numNeur_a[num_layers-1] != numNeur_b[num_layers-1] ) ) {
-    printf("num input or output unequal \n");
-    exit (1);
-  }  
+    if( ( numNeur_a[0] != numNeur_b[0] ) || ( numNeur_a[num_layers-1] != numNeur_b[num_layers-1] ) ) {
+      printf("num input or output unequal \n");
+      exit (1);
+    }  
   //assumes 3 layers
-  cnn = init(num_layers, numNeur_a[0], numNeur_a[1] + numNeur_b[1], numNeur_a[num_layers-1], &cnn);
-  c_con = allocate(cnn, &c_con);
+    cnn = init(num_layers, numNeur_a[0], numNeur_a[1] + numNeur_b[1], numNeur_a[num_layers-1], &cnn);
+    c_con = allocate(cnn, &c_con);
 
   //Error arrays
-  double *e_a, *e_b;
-  e_a = malloc( (numNeur_a[num_layers-1] * sizeof(double)));
-  if (e_a == NULL){
-    printf("malloc error \n");
-    exit (1);
-  }
-  e_b= malloc( (numNeur_a[num_layers-1] * sizeof(double)));
-  if (e_b == NULL){
-    printf("malloc error \n");
-    exit (1);
-  }
-  e_a = evaluate(ann, data);
-  e_b = evaluate(bnn, data);
+    double *e_a, *e_b;
+    e_a = malloc( (numNeur_a[num_layers-1] * sizeof(double)));
+    if (e_a == NULL){
+      printf("malloc error \n");
+      exit (1);
+    }
+    e_b= malloc( (numNeur_a[num_layers-1] * sizeof(double)));
+    if (e_b == NULL){
+      printf("malloc error \n");
+      exit (1);
+    }
+    e_a = evaluate(ann, data);
+    e_b = evaluate(bnn, data);
 
 
   //Fully connect net.
-  joinNets(ann, bnn, cnn, a_con, b_con, c_con, numNeur_a, numNeur_b, e_a, e_b);
+    joinNets(ann, bnn, cnn, a_con, b_con, c_con, numNeur_a, numNeur_b, e_a, e_b);
 
-  free(numNeur_a);
-  free(numNeur_b);  
+    free(numNeur_a);
+    free(numNeur_b);  
 
   //IDK about this. TODO ask someone smarter. 
   // free(e_a);
   // free(e_b);
-  free(c_con);
-  return cnn;
-}
+    free(c_con);
+    return cnn;
+  }
 
-int main() {
-  const unsigned int input = 2, hid = 2, out = 2, layers = 3;
-  const float desired_error = (const float) 0.01;
-  const unsigned int max_epochs = 500000;
-  const unsigned int epochs_between_reports = 500;
-  struct fann *ann, *bnn, *cnn;
-  struct fann_connection *a_con, *b_con;
-  struct fann_train_data *data = fann_read_train_from_file("xor.data");
+  int main() {
+    const unsigned int input = 2, hid = 2, out = 2, layers = 3;
+    const float desired_error = (const float) 0.01;
+    const unsigned int max_epochs = 500000;
+    const unsigned int epochs_between_reports = 500;
+    struct fann *ann, *bnn, *cnn;
+    struct fann_connection *a_con, *b_con;
+    struct fann_train_data *data = fann_read_train_from_file("xor.data");
 
 //Init  
-  ann = init(layers, input, hid, out, &ann);
-  bnn = init(layers, input, hid, out, &bnn);
+    ann = init(layers, input, hid, out, &ann);
+    bnn = init(layers, input, hid, out, &bnn);
 
   //Train
-  fann_train_on_file(ann, "xor.data", max_epochs, epochs_between_reports, desired_error);
-  fann_train_on_file(bnn, "xor.data", max_epochs, epochs_between_reports, desired_error);
+    fann_train_on_file(ann, "xor.data", max_epochs, epochs_between_reports, desired_error);
+    fann_train_on_file(bnn, "xor.data", max_epochs, epochs_between_reports, desired_error);
 
   //Each connection struct is 2 ints and a fann_type. Here the fann_type is 
   //double, but sizeof(struct fann_connection) == 12. Is this a bug or 
   //expected? Would be right if fann_type were int. 
-  a_con = allocate(ann, &a_con);
-  b_con = allocate(bnn, &b_con);
-  printf("\n");
+    a_con = allocate(ann, &a_con);
+    b_con = allocate(bnn, &b_con);
+    printf("\n");
 #ifdef DEBUGCONNECTIONS
 
-  printConnTable(ann, bnn, a_con, b_con);
+    printConnTable(ann, bnn, a_con, b_con);
 #endif
 
   //Combine
-  cnn = combineNets(ann, bnn, a_con, b_con, data);
+    cnn = combineNets(ann, bnn, a_con, b_con, data);
 
 #ifdef DEBUGCONNECTIONS
-  int i;
-  for(i = 0; i < cnn->total_connections; i++)
-  {
-    printf("weight %d = %f \n", i, cnn->weights[i]);
-  }
+    int i;
+    for(i = 0; i < cnn->total_connections; i++)
+    {
+      printf("weight %d = %f \n", i, cnn->weights[i]);
+    }
 #endif
 
   //Save & clean
-  fann_save(ann, "a_xor_float.net");
-  fann_save(bnn, "b_xor_float.net");
-  fann_save(cnn, "c_xor_float.net");
-  fann_destroy(ann);
-  fann_destroy(bnn);
-  fann_destroy(cnn);
-  fann_destroy_train(data);
-  free(a_con);
-  free(b_con);
-  return 0;   
-}
+    fann_save(ann, "a_xor_float.net");
+    fann_save(bnn, "b_xor_float.net");
+    fann_save(cnn, "c_xor_float.net");
+    fann_destroy(ann);
+    fann_destroy(bnn);
+    fann_destroy(cnn);
+    fann_destroy_train(data);
+    free(a_con);
+    free(b_con);
+    return 0;   
+  }
 
