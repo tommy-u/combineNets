@@ -33,18 +33,21 @@ int main (int argc, char *argv[])
     printf("Usage: ./outNodeEval <net> <data> \n");
     printf("Supply a net and data for per output node error Evaluation.\n");
     printf("Too few args. Exiting.\n");
+    exit(1);
   }
   if(argc > 3) {
     printf("Usage: ./eval <net> <data> \n");
     printf("Supply one net and one data file for per output node error evaluation.\n");
     printf("Too many input args. Exiting\n");
+    exit(1);
   }
   struct fann *ann = NULL;
   ann = fann_create_from_file(argv[1]);
   if(ann == NULL) {
     printf("error opening ann file \n");
-    //fann_destroy(ann);
-    exit(1);
+    fann_destroy(ann);
+    free(ann);
+exit(1);
   }
   struct fann_train_data *data = fann_read_train_from_file(argv[2]);
   if(data== NULL) {
