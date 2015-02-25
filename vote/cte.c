@@ -41,19 +41,23 @@ int main (int argc, char *argv[])
     printf("Too many input args. Exiting\n");
     exit(1);
   }
+
   struct fann *ann = NULL;
   ann = fann_create_from_file(argv[1]);
   if(ann == NULL) {
     printf("error opening ann file \n");
-    fann_destroy(ann);
-    free(ann);
-exit(1);
+    //Leaking 128 bytes here. From what???
+    //fann_destroy(ann);
+    //free(ann);
+    exit(1);
   }
+
   struct fann_train_data *data = fann_read_train_from_file(argv[2]);
   if(data== NULL) {
     printf("error opening data file \n");
+    //Losing mem here.
     //fann_destroy(ann);
-    //fann_destroy_train(data);
+    fann_destroy_train(data);
     exit(1);
   }
 
