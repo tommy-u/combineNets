@@ -214,8 +214,11 @@
     //why does this need to be a deep copy?
 
     cnn = fann_copy(nets[0]);
-    for(i = 0; i < argc - 2; i++)
+    for(i = 0; i < argc - 3; i++)
+    {
+      printf("combineing \n");
       cnn = combineNets(cnn, nets[i+1], data);
+}
 
     
 #ifdef DEBUGCONNECTIONS
@@ -231,7 +234,6 @@
       printf("destroyed\n");
     }
     free(nets);
-    
     fann_destroy(cnn);
     fann_destroy_train(data);
     return 0;   
