@@ -1,12 +1,26 @@
 iteration2. 
-./ctr combines ann and bnn into cnn. Cnn has the property that each output bit is calculated fully by the network that predicts its value with the lowest error over the training set. After this is debugged, it should be possible to combine any 3 layer network with the same number of input and output nodes. The number of hidden notes should not matter. This is one step toward full generality. 
+combine.c allows for any number of nets with the same number of output nodes to be combined. These nets can have arbitrary numbers of hidden nodes. 
 
-Issues:
-Needs generalization in the evaluate function of both ctr and cte. Memory management is shooting from the hip and needs to be locked down. The work loop needs to be cleaned up so a human can read it. 
+eval.c allows an arbitrary number of nets to be evaluated based on their per output node error. This error term is simply the absolute value of the difference between their predicted output node value and the actual value from the training set evaluated over the entire training set.
+
+errorArr [#output nodes];
+loop over output nodes
+	errorArr[this node] += abs(predicted val for node (run input through net) - actual valfor node (from training set ) )
 
 To compile:
-make ctr cte
+make all
 
 To run:
-./ctr
-./cte
+
+Build Nets
+./nets
+
+Evaluate nets
+./eval x.data a.net b.net c.net
+
+Combine component nets.
+./combine x.data a.net b.net c.net 
+
+Check out combined net.
+./eval x.data combined.net
+
