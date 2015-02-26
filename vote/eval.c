@@ -46,15 +46,25 @@ struct fann_train_data * checkArgs(int argc, char *argv[], struct fann_train_dat
   return data;
 }
 struct fann ** populateNets(int numNets, char *argv[], struct fann **nets) {
+  int numOutput = -1;
+
   nets = malloc ( numNets * sizeof(struct fann*));
   if(nets == NULL){
     printf("error allocating nets \n");
     exit(1);
   }
 
+
   int i;
   for (i = 0; i < numNets; i++){
     nets[i] = fann_create_from_file(argv[i+2]);
+    //Check nets have same num output.
+    if(numOutput < 0)
+      numOutput = fann_get_num_output(nets[i]);
+    else
+      if (numOutput != fann_get_num_output(nets[i])){
+        printf("net %d does not have the same number of outputs as net %d \n",i,i-1);
+      }
     if(nets[i] == NULL){
       printf("error allocating nets[%d]",i+2);
       printf("mem leak 128 bytes");
