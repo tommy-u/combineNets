@@ -219,11 +219,7 @@
     data = checkArgs(argc, argv, data);
     nets = populateNets(numNets, argv, nets);
 
-    cnn = combineNets(nets[0], nets[1], data);
-    cnn = combineNets(cnn, nets[2], data);
-
-    //why does this need to be a deep copy?
-    cnn = fann_copy(nets[0]);
+    cnn = nets[0];
     for(i = 0; i < numNets - 1; i++) {
       cnn = combineNets(cnn, nets[i+1], data);
     }
