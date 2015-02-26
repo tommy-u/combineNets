@@ -39,6 +39,8 @@
   }
 
   struct fann* init(const unsigned int layers, const unsigned int input, const unsigned int hid, const unsigned int out, struct fann *ann){
+    //    if(ann != NULL)
+    // free(ann);
     ann = fann_create_standard(layers, input, hid, out);
     fann_set_training_algorithm(ann, FANN_TRAIN_QUICKPROP);
     fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
@@ -147,12 +149,14 @@
       exit (1);
     }  
    //assumes 3 layers
+    //    if(cnn != NULL)
+    //free(cnn);
     cnn = init(num_layers, numNeur_a[0], numNeur_a[1] + numNeur_b[1], numNeur_a[num_layers-1], cnn);
 
 
     //Error arrays
-    double *e_a, *e_b;
-    e_a = malloc( (numNeur_a[num_layers-1] * sizeof(double)));
+    double *e_a = NULL, *e_b= NULL;
+    /*    e_a = malloc( (numNeur_a[num_layers-1] * sizeof(double)));
     if (e_a == NULL) {
       printf("malloc error \n");
       exit (1);
@@ -162,13 +166,14 @@
       printf("malloc error \n");
       exit (1);
     }
-    
+    */
     e_a = evaluateBitErrors(ann, data, e_a);
     e_b = evaluateBitErrors(bnn, data, e_b);
 
     //Fully connect net.
     joinNets(ann, bnn, cnn, numNeur_a, numNeur_b, e_a, e_b);
     
+   
     free(e_a);
     free(e_b);
     free(numNeur_a);
@@ -238,7 +243,7 @@
       fann_destroy(nets[i]);
     }
     free(nets);
-
+    fann_destroy(cnn);
     fann_destroy_train(data);
     return 0;   
   }
