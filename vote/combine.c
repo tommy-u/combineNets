@@ -220,6 +220,7 @@
     nets = populateNets(numNets, argv, nets);
 
     cnn = nets[0];
+    //There is a mem leak here.
     for(i = 0; i < numNets - 1; i++) {
       cnn = combineNets(cnn, nets[i+1], data);
     }
@@ -237,7 +238,7 @@
       fann_destroy(nets[i]);
     }
     free(nets);
-    fann_destroy(cnn);
+
     fann_destroy_train(data);
     return 0;   
   }

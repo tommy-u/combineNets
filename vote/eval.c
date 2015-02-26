@@ -54,7 +54,6 @@ struct fann ** populateNets(int numNets, char *argv[], struct fann **nets) {
     exit(1);
   }
 
-
   int i;
   for (i = 0; i < numNets; i++){
     nets[i] = fann_create_from_file(argv[i+2]);
@@ -87,6 +86,7 @@ void printResults(int numNets, char *argv[], struct fann **nets, struct fann_tra
       printf("%f \t",errorArr[j]);
     }
     printf("\n");
+    free(errorArr);
   }
 }
 
@@ -107,7 +107,7 @@ int main (int argc, char *argv[]) {
   for (i = 0; i < numNets; i++)
     fann_destroy(nets[i]);
   free(nets);
-  free(errorArr);
+  //  free(errorArr);
   fann_destroy_train(data);
   return 0;
 }
