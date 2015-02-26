@@ -1,8 +1,7 @@
 #include <stdio.h>
-#include "floatfann.h"
-#include <math.h>
-#define DEBUG
-
+#include "fann.h"
+//#define DEBUG
+#define OUTPUT
 double* evaluateBitErrors(struct fann *ann, struct fann_train_data *data, double *errorArr){
   //calc_out is just a pointer to the ann->output array
   fann_type *calc_out, *inputData = *data->input, *outputData = *data->output;
@@ -20,10 +19,13 @@ double* evaluateBitErrors(struct fann *ann, struct fann_train_data *data, double
     //Loop over output nodes
     for(j = 0; j < numOut; j++, calc_out++, outputData++ ) {
       //Assume nodewise error into array.
-     errorArr[j] += (double) fabs(*outputData - *calc_out);
-   }
- }
- return errorArr;
+      #ifdef DEBUG
+      printf("bit %d error += %f \n", j, fabs(*outputData - *calc_out));
+      #endif
+      errorArr[j] += (double) fabs(*outputData - *calc_out);
+    }
+  }
+  return errorArr;
 }
 
 
@@ -45,36 +47,35 @@ int main (int argc, char *argv[])
   struct fann *ann = NULL;
   ann = fann_create_from_file(argv[1]);
   if(ann == NULL) {
-    printf("error opening ann file \n");
-    //Leaking 128 bytes here. From what???
-    //fann_destroy(ann);
-    //free(ann);
+    //128 bytes of mem are lost here. Think it's fann.
+    //FANN-2.2.0-Source/src/fann_io.c in fann_create_from_file,
+    //in error case, file is not closed. 
+    printf("error opening ann file, 128 byte mem leak\n");
     exit(1);
   }
 
   struct fann_train_data *data = fann_read_train_from_file(argv[2]);
   if(data== NULL) {
-    printf("error opening data file \n");
-    //Losing mem here.
-    //fann_destroy(ann);
-    fann_destroy_train(data);
+    printf("error opening data file, 128 byte mem leak\n");
+    //Think this mem leak is fann again.
     exit(1);
   }
-
-  unsigned int numOutput= fann_get_num_output(ann);
   double *errorArr = NULL;
+
+#if defined(DEBUG) || defined(OUTPUT)
+  unsigned int numOutput= fann_get_num_output(ann);
   int i;
+#endif
 
   //Ann
   errorArr = evaluateBitErrors(ann, data, errorArr);
 
-#ifdef DEBUG      
-  printf("ann[0]:\n");
+#ifdef OUTPUT    
   for(i = 0; i < numOutput; i++)
     printf("error for bit %d is %f \n",i,errorArr[i]);
 #endif
-  free(errorArr);
 
+  free(errorArr);
   fann_destroy(ann);
   fann_destroy_train(data);
   return 0;
