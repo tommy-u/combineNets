@@ -148,25 +148,12 @@
       printf("num input or output unequal \n");
       exit (1);
     }  
-   //assumes 3 layers
-    //    if(cnn != NULL)
-    //free(cnn);
+   
     cnn = init(num_layers, numNeur_a[0], numNeur_a[1] + numNeur_b[1], numNeur_a[num_layers-1], cnn);
 
 
     //Error arrays
     double *e_a = NULL, *e_b= NULL;
-    /*    e_a = malloc( (numNeur_a[num_layers-1] * sizeof(double)));
-    if (e_a == NULL) {
-      printf("malloc error \n");
-      exit (1);
-    }
-    e_b= malloc( (numNeur_a[num_layers-1] * sizeof(double)));
-    if (e_b == NULL) {
-      printf("malloc error \n");
-      exit (1);
-    }
-    */
     e_a = evaluateBitErrors(ann, data, e_a);
     e_b = evaluateBitErrors(bnn, data, e_b);
 
