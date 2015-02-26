@@ -1,14 +1,14 @@
 CC = gcc
 CFlags = -Wall -lfann -o
-CLEAN = ctr nets cte *.net 
-ctr:
+CLEAN = combine nets eval *.net 
+combine:
 	$(CC) $@.c $(CFlags) $@
-cte:
+eval:
 	$(CC) $@.c $(CFlags) $@
 nets:
 	$(CC) genNets.c $(CFlags) $@
 
-all:	ctr cte nets
+all:	combine eval nets
 
 clean:
 	$(RM) $(CLEAN)
