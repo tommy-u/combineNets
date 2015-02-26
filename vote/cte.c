@@ -2,7 +2,8 @@
 #include "fann.h"
 //#define DEBUG
 #define OUTPUT
-double* evaluateBitErrors(struct fann *ann, struct fann_train_data *data, double *errorArr){
+
+double* evaluateBitErrors(struct fann *ann, struct fann_train_data *data, double *errorArr) {
   //calc_out is just a pointer to the ann->output array
   fann_type *calc_out, *inputData = *data->input, *outputData = *data->output;
   int i, j, numIn = fann_get_num_input(ann), numOut = fann_get_num_output(ann), lenTrain = fann_length_train_data(data);
@@ -28,11 +29,10 @@ double* evaluateBitErrors(struct fann *ann, struct fann_train_data *data, double
   return errorArr;
 }
 
-
 int main (int argc, char *argv[])
 {
   if(argc <= 2 ) {
-    printf("Usage: ./outNodeEval <net> <data> \n");
+    printf("Usage: ./outNodeEval  <data> <net>\n");
     printf("Supply a net and data for per output node error Evaluation.\n");
     printf("Too few args. Exiting.\n");
     exit(1);
@@ -44,8 +44,15 @@ int main (int argc, char *argv[])
     exit(1);
   }
 
+  struct fann_train_data *data = fann_read_train_from_file(argv[1]);
+  if(data== NULL) {
+    printf("error opening data file, 128 byte mem leak\n");
+    //Think this mem leak is fann again.
+    exit(1);
+  }
+
   struct fann *ann = NULL;
-  ann = fann_create_from_file(argv[1]);
+  ann = fann_create_from_file(argv[2]);
   if(ann == NULL) {
     //128 bytes of mem are lost here. Think it's fann.
     //FANN-2.2.0-Source/src/fann_io.c in fann_create_from_file,
@@ -54,12 +61,6 @@ int main (int argc, char *argv[])
     exit(1);
   }
 
-  struct fann_train_data *data = fann_read_train_from_file(argv[2]);
-  if(data== NULL) {
-    printf("error opening data file, 128 byte mem leak\n");
-    //Think this mem leak is fann again.
-    exit(1);
-  }
   double *errorArr = NULL;
 
 #if defined(DEBUG) || defined(OUTPUT)

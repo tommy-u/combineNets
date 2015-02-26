@@ -4,17 +4,14 @@
 #define DEBUGCONNECTIONS
 //#define DEBUG
 /*
-  Combining 2 networks with same architecture.
+  Combining n networks with same input and output size.
     
-  Interested in: 1 determining a better error criterion. 2 considering over fitting. 
-  3 allowing multiple connections from bias node so an exponentially weighted scheme can
-  be attempted. 4 generalization: i any number of nets (easy?) ii any hidden layer structure
-  but same input and output iii any input output relation iv any number of layers 
-  (shortcut connections needed?)  
+  Interested in: determining a better error criterion. 
   
   Author: Tommy Unger (tommyu@bu.edu.)
   
 */
+
   double* evaluateBitErrors(struct fann *ann, struct fann_train_data *data, double *errorArr){
   //calc_out is just a pointer to the ann->output array
     fann_type *calc_out, *inputData = *data->input, *outputData = *data->output;
@@ -49,21 +46,9 @@
     return ann;
   } 
 
-  // struct fann_connection* allocate(struct fann *ann, struct fann_connection *con) {
-  //   con = malloc( (ann->total_connections * sizeof(struct fann_connection) + 4));
-  //   if (con == NULL){
-  //     printf("malloc error \n");
-  //     exit (1);
-  //   }
-  //   return con;
-  // }
-
   void printConnTable(struct fann *ann, struct fann *bnn) {
   //Assumes same architecture.
     int i = 0;
-    // fann_get_connection_array(ann,a_con);
-    // fann_get_connection_array(bnn,b_con);
-
     for(i = 0; i < ann->total_connections; i++)
     {
       printf("connection %d\n", i);
@@ -92,9 +77,7 @@
         cnn->weights[i] = bnn->weights[k++];
       }
     }
-
-  //L1 -> L2 conn
-
+    //L1 -> L2 conn
     int outBit;
     //Loop over output bits.
     for(outBit = 0; outBit < fann_get_num_output(cnn); outBit++){
@@ -138,16 +121,14 @@
   struct fann* combineNets(struct fann *ann, struct fann *bnn, struct fann_train_data *data) {
     unsigned int num_layers, *numNeur_a, *numNeur_b; 
     struct fann *cnn = NULL;
-
-    double *errArr_a = NULL, *errArr_b = NULL;
-  //Assumes ann and bnn have identical structure. 
-  //New net will be 2x as many in hidden.
+    //Assumes ann and bnn have identical structure. 
+    //New net will be 2x as many in hidden.
     num_layers = fann_get_num_layers(ann);
     if(num_layers != fann_get_num_layers(bnn)){
       printf("layers unequal \n");
       exit(1);
     }
-  //Neuron counts
+   //Neuron counts
     numNeur_a = malloc( (num_layers * sizeof(unsigned int)));
     if (numNeur_a == NULL){
       printf("malloc error \n");
@@ -165,11 +146,11 @@
       printf("num input or output unequal \n");
       exit (1);
     }  
-  //assumes 3 layers
+   //assumes 3 layers
     cnn = init(num_layers, numNeur_a[0], numNeur_a[1] + numNeur_b[1], numNeur_a[num_layers-1], cnn);
    
 
-  //Error arrays
+    //Error arrays
     double *e_a, *e_b;
     e_a = malloc( (numNeur_a[num_layers-1] * sizeof(double)));
     if (e_a == NULL){
@@ -181,20 +162,17 @@
       printf("malloc error \n");
       exit (1);
     }
-    e_a = evaluateBitErrors(ann, data, errArr_a);
-    e_b = evaluateBitErrors(bnn, data, errArr_b);
+    
+    e_a = evaluateBitErrors(ann, data, e_a);
+    e_b = evaluateBitErrors(bnn, data, e_b);
 
-
-  //Fully connect net.
+    //Fully connect net.
     joinNets(ann, bnn, cnn, numNeur_a, numNeur_b, e_a, e_b);
-
+    
+    free(e_a);
+    free(e_b);
     free(numNeur_a);
     free(numNeur_b);  
-
-  //IDK about this. TODO ask someone smarter. 
-  // free(e_a);
-  // free(e_b);
-  //  free(c_con);
     return cnn;
   }
 
@@ -212,7 +190,6 @@
       exit(1);
     }
     struct fann **nets = NULL;
-    printf("%d nets \n", argc -2);
     nets = malloc ( (argc - 2 )* sizeof(struct fann*));
     if(nets == NULL){
       printf("error allocating nets \n");
@@ -228,35 +205,33 @@
         exit(1);
       }
     }
+
     struct fann *cnn = NULL;
 
-#ifdef DEBUGCONNECTIONS
-    //update
-    //printConnTable(ann, bnn);
-#endif
-
-  //Combine
-  //Call this in a loop
     cnn = combineNets(nets[0], nets[1], data);
+    cnn = combineNets(cnn, nets[2], data);
 
-#ifdef DEBUGCONNECTIONS
+    //why does this need to be a deep copy?
+
+    cnn = fann_copy(nets[0]);
+    for(i = 0; i < argc - 2; i++)
+      cnn = combineNets(cnn, nets[i+1], data);
+
     
-    for(i = 0; i < cnn->total_connections; i++)
-    {
+#ifdef DEBUGCONNECTIONS
+    for(i = 0; i < cnn->total_connections; i++) {
       printf("weight %d = %f \n", i, cnn->weights[i]);
     }
 #endif
+    fann_save(cnn, "combined.net");
 
   //Save & clean
     for (i = 0; i < argc-2; i++){
-      free(nets[i]);
+      fann_destroy(nets[i]);
+      printf("destroyed\n");
     }
     free(nets);
-    // fann_save(ann, "a_xor_float.net");
-    // fann_save(bnn, "b_xor_float.net");
-    fann_save(cnn, "c_xor_float.net");
-    // fann_destroy(ann);
-    // fann_destroy(bnn);
+    
     fann_destroy(cnn);
     fann_destroy_train(data);
     return 0;   

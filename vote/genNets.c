@@ -8,24 +8,29 @@
     return ann;
   } 
 int main(){
-	const unsigned int input = 2, hid = 2, out = 2, layers = 3;
+//	const unsigned int input = 2, hid = 2, out = 2, layers = 3;
+	const unsigned int input = 2, out = 2, layers = 3;	
 	const float desired_error = (const float) 0.01;
 	const unsigned int max_epochs = 500000;
 	const unsigned int epochs_between_reports = 500;
 	struct fann_train_data *data = fann_read_train_from_file("xor.data");
-	struct fann *ann = NULL, *bnn = NULL;
+	struct fann *ann = NULL, *bnn = NULL, *cnn;
 	
-	ann = init(layers, input, hid, out, ann);
-	bnn = init(layers, input, hid, out, bnn);
+	ann = init(layers, input, 2, out, ann);
+	bnn = init(layers, input, 2, out, bnn);
+	cnn = init(layers, input, 2, out, bnn);
+
 	fann_train_on_file(ann, "xor.data", max_epochs, epochs_between_reports, desired_error);
 	fann_train_on_file(bnn, "xor.data", max_epochs, epochs_between_reports, desired_error);
+	fann_train_on_file(cnn, "xor.data", max_epochs, epochs_between_reports, desired_error);
 
-
-	fann_save(ann, "a_xor_float.net");
-    fann_save(bnn, "b_xor_float.net");
+	fann_save(ann, "a.net");
+    fann_save(bnn, "b.net");
+    fann_save(cnn, "c.net");
 
     fann_destroy(ann);
     fann_destroy(bnn);
+    fann_destroy(cnn);
     fann_destroy_train(data);
 
 	return 0;
