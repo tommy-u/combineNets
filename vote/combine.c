@@ -1,7 +1,7 @@
 #include "fann.h"
 #include <stdlib.h>
 #include <assert.h>
-#define DEBUGCONNECTIONS
+//#define DEBUGCONNECTIONS
 //#define DEBUG
 /*
   Combining n networks with same input and output size.
@@ -148,17 +148,17 @@
     }  
    //assumes 3 layers
     cnn = init(num_layers, numNeur_a[0], numNeur_a[1] + numNeur_b[1], numNeur_a[num_layers-1], cnn);
-   
+
 
     //Error arrays
     double *e_a, *e_b;
     e_a = malloc( (numNeur_a[num_layers-1] * sizeof(double)));
-    if (e_a == NULL){
+    if (e_a == NULL) {
       printf("malloc error \n");
       exit (1);
     }
     e_b= malloc( (numNeur_a[num_layers-1] * sizeof(double)));
-    if (e_b == NULL){
+    if (e_b == NULL) {
       printf("malloc error \n");
       exit (1);
     }
@@ -175,29 +175,31 @@
     free(numNeur_b);  
     return cnn;
   }
-
-  int main(int argc, char *argv[]) {
+  struct fann_train_data * checkArgs(int argc, char *argv[], struct fann_train_data *data){
     if(argc < 3) {
       printf("Usage: ./combine <data> <net1> ... <netn>  \n");
       printf("Supply one data file, then n nets for combining.\n");
       printf("Too few args. Exiting\n");
       exit(1);
     }
-    struct fann_train_data *data = fann_read_train_from_file(argv[1]);
+    data = fann_read_train_from_file(argv[1]);
     if(data== NULL) {
       printf("error opening data file, 128 byte mem leak\n");
     //Think this mem leak is fann again.
       exit(1);
     }
-    struct fann **nets = NULL;
-    nets = malloc ( (argc - 2 )* sizeof(struct fann*));
+    return data;
+  }
+  struct fann ** populateNets(int numNets, char *argv[], struct fann **nets) {
+    
+    nets = malloc ( (numNets )* sizeof(struct fann*));
     if(nets == NULL){
       printf("error allocating nets \n");
       exit(1);
     }
 
     int i;
-    for (i = 0; i < argc-2; i++){
+    for (i = 0; i < numNets; i++) {
       nets[i] = fann_create_from_file(argv[i+2]);
       if(nets[i] == NULL){
         printf("error allocating nets[%d]",i+2);
@@ -205,20 +207,26 @@
         exit(1);
       }
     }
+    return nets;
+  }
 
+  int main(int argc, char *argv[]) {
+    int i, numNets = argc -2;
     struct fann *cnn = NULL;
+    struct fann **nets = NULL;
+    struct fann_train_data *data = NULL;
+
+    data = checkArgs(argc, argv, data);
+    nets = populateNets(numNets, argv, nets);
 
     cnn = combineNets(nets[0], nets[1], data);
     cnn = combineNets(cnn, nets[2], data);
 
     //why does this need to be a deep copy?
-
     cnn = fann_copy(nets[0]);
-    for(i = 0; i < argc - 3; i++)
-    {
-      printf("combineing \n");
+    for(i = 0; i < numNets - 1; i++) {
       cnn = combineNets(cnn, nets[i+1], data);
-}
+    }
 
     
 #ifdef DEBUGCONNECTIONS
@@ -231,7 +239,6 @@
   //Save & clean
     for (i = 0; i < argc-2; i++){
       fann_destroy(nets[i]);
-      printf("destroyed\n");
     }
     free(nets);
     fann_destroy(cnn);

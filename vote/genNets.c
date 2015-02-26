@@ -9,16 +9,16 @@
   } 
 int main(){
 //	const unsigned int input = 2, hid = 2, out = 2, layers = 3;
-	const unsigned int input = 2, out = 2, layers = 3;	
+	const unsigned int input = 2, out = 3, layers = 3;	
 	const float desired_error = (const float) 0.01;
 	const unsigned int max_epochs = 500000;
 	const unsigned int epochs_between_reports = 500;
 	struct fann_train_data *data = fann_read_train_from_file("x.data");
-	struct fann *ann = NULL, *bnn = NULL, *cnn;
+	struct fann *ann = NULL, *bnn = NULL, *cnn = NULL;
 	
 	ann = init(layers, input, 2, out, ann);
-	bnn = init(layers, input, 2, out, bnn);
-	cnn = init(layers, input, 2, out, bnn);
+	bnn = init(layers, input, 3, out, bnn);
+	cnn = init(layers, input, 4, out, cnn);
 
 	fann_train_on_file(ann, "x.data", max_epochs, epochs_between_reports, desired_error);
 	fann_train_on_file(bnn, "x.data", max_epochs, epochs_between_reports, desired_error);
