@@ -204,7 +204,7 @@
 
   int main(int argc, char *argv[]) {
     int i, numNets = argc -2;
-    struct fann *cnn = NULL;
+    struct fann *cnn = NULL, *oldCnn = NULL;
     struct fann **nets = NULL;
     struct fann_train_data *data = NULL;
 
@@ -214,7 +214,10 @@
     cnn = nets[0];
     //There is a mem leak here.
     for(i = 0; i < numNets - 1; i++) {
+      oldCnn = cnn;
       cnn = combineNets(cnn, nets[i+1], data);
+      fann_destroy(oldCnn);
+      fann_destroy(nets[i+1]);
     }
 
     
@@ -226,9 +229,6 @@
     fann_save(cnn, "combined.net");
 
   //Save & clean
-    for (i = 0; i < argc-2; i++){
-      fann_destroy(nets[i]);
-    }
     free(nets);
     fann_destroy(cnn);
     fann_destroy_train(data);
