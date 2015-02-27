@@ -74,20 +74,31 @@ struct fann ** populateNets(int numNets, char *argv[], struct fann **nets) {
 }
 void printResults(int numNets, char *argv[], struct fann **nets, struct fann_train_data *data, double *errorArr) {
   int i, j;
+  double *totals;
+
+  totals = calloc(numNets, sizeof(double*));
+  if(totals == NULL){
+    printf("calloc failed\n");
+    exit(1);
+  }
+  
   unsigned int numOutput= fann_get_num_output(nets[0]); 
   printf("Net \t ");
   for(i = 0; i < numOutput; i++)
     printf("bit %d error\t",i);
-  printf("\n");
+  printf("total error\n");
+
   for (i = 0; i < numNets; i++){
     errorArr = evaluateBitErrors(nets[i], data, errorArr);    
     printf("%s \t",argv[i + 2]); 
     for(j = 0; j < numOutput; j++){
       printf("%f \t",errorArr[j]);
+      totals[i] += errorArr[j];
     }
-    printf("\n");
+    printf("%f \n",totals[i]);
     free(errorArr);
   }
+  free(totals);
 }
 
 
