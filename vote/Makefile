@@ -1,14 +1,15 @@
 CC = gcc
 CFlags = -Wall -lfann -o
 CLEAN = combine nets eval *.net 
+
+all:	combine eval nets
+
 combine:
 	$(CC) $@.c $(CFlags) $@
 eval:
 	$(CC) $@.c $(CFlags) $@
 nets:
 	$(CC) genNets.c $(CFlags) $@
-
-all:	combine eval nets
 
 clean:
 	$(RM) $(CLEAN)
