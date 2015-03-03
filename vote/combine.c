@@ -44,7 +44,7 @@
     ann = fann_create_standard(layers, input, hid, out);
     fann_set_training_algorithm(ann, FANN_TRAIN_QUICKPROP);
     fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
-    fann_set_activation_function_output(ann, FANN_SIGMOID_SYMMETRIC);
+    fann_set_activation_function_output(ann, FANN_SIGMOID);
     return ann;
   } 
 
