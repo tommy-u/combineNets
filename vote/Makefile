@@ -8,8 +8,6 @@ combine:
 	$(CC) $@.c $(CFlags) $@
 eval:
 	$(CC) $@.c $(CFlags) $@
-nets:
-	$(CC) genNets.c $(CFlags) $@
 
 clean:
 	$(RM) $(CLEAN)
