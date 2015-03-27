@@ -4,12 +4,8 @@
 //#define DEBUGCONNECTIONS
 //#define DEBUG
 /*
-  Combining n networks with same input and output size.
-    
-  Interested in: determining a better error criterion. 
-  
-  Author: Tommy Unger (tommyu@bu.edu.)
-  
+  Combining n networks with same input and output size.  
+  tommyu@bu.edu
 */
 
   double* evaluateBitErrors(struct fann *ann, struct fann_train_data *data, double *errorArr){
@@ -210,7 +206,6 @@
 
     data = checkArgs(argc, argv, data);
     nets = populateNets(numNets, argv, nets);
-
     cnn = nets[0];
     //There is a mem leak here.
     for(i = 0; i < numNets - 1; i++) {
@@ -220,14 +215,12 @@
       fann_destroy(nets[i+1]);
     }
 
-    
 #ifdef DEBUGCONNECTIONS
     for(i = 0; i < cnn->total_connections; i++) {
       printf("weight %d = %f \n", i, cnn->weights[i]);
     }
 #endif
     fann_save(cnn, "combined.net");
-
   //Save & clean
     free(nets);
     fann_destroy(cnn);

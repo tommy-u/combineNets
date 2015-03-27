@@ -1,9 +1,11 @@
 CC = gcc
 CFlags = -Wall -lfann -o
-CLEAN = ctr cte *.net 
-ctr:
-	$(CC) $@.c $(CFlags) $@
-cte:
+CLEAN = buildCollatzNet
+
+all:	buildCollatzNet
+
+buildCollatzNet:
 	$(CC) $@.c $(CFlags) $@
 clean:
 	$(RM) $(CLEAN)
+

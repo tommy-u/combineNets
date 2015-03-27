@@ -1,0 +1,14 @@
+#!/bin/bash
+numNets=10
+
+rm *.net
+
+for ((i=0; i<$numNets; i++))
+do
+    echo $i.net
+    ./buildCollatzNet
+    mv collatz.net $i.net
+done
+
+../vote/combine collatz.train *.net
+../vote/eval_samples collatz.train combined.net 

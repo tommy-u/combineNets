@@ -12,9 +12,6 @@ make all
 
 To run:
 
-Build Nets
-./nets
-
 Evaluate nets
 ./eval x.data a.net b.net c.net
 

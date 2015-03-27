@@ -39,8 +39,8 @@ struct fann_train_data * checkArgs(int argc, char *argv[], struct fann_train_dat
   }
   data = fann_read_train_from_file(argv[1]);
   if(data== NULL) {
-    printf("error opening data file, 128 byte mem leak\n");
-    //Think this mem leak is fann again.
+    printf("error opening data file \n");
+    //Think this mem leak is fann.
     exit(1);
   }
   return data;
@@ -66,7 +66,6 @@ struct fann ** populateNets(int numNets, char *argv[], struct fann **nets) {
       }
     if(nets[i] == NULL){
       printf("error allocating nets[%d]",i+2);
-      printf("mem leak 128 bytes");
       exit(1);
     }
   }

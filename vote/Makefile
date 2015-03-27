@@ -1,14 +1,15 @@
 CC = gcc
 CFlags = -Wall -lfann -o
-CLEAN = combine nets eval *.net 
+CLEAN = combine eval_bits eval_samples *.net 
 
-all:	combine eval nets
+all:	combine eval_bits eval_samples
 
 combine:
 	$(CC) $@.c $(CFlags) $@
-eval:
+eval_bits:
 	$(CC) $@.c $(CFlags) $@
-
+eval_samples:
+	$(CC) $@.c $(CFlags) $@
 clean:
 	$(RM) $(CLEAN)
 
