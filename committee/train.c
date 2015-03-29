@@ -36,7 +36,8 @@ int main(){
     calc_out = fann_run(bnn, inputData);
     printf("out actual: %f\toutcalculated: %f \tdiff: %f  \n", outputData[i], *calc_out, (outputData[i]- *calc_out) );
   }
-  printf("cnn num weights = %u \n", fann_get_total_connections(cnn));
+
+
   cnn->weights[0] = ann->weights[0]; 
   cnn->weights[1] = ann->weights[1]; 
   cnn->weights[2] = ann->weights[2]; 
@@ -44,11 +45,19 @@ int main(){
   cnn->weights[3] = bnn->weights[0]; 
   cnn->weights[4] = bnn->weights[1]; 
   cnn->weights[5] = bnn->weights[2]; 
-
+  fann_set_activation_function_output(cnn, FANN_LINEAR);
+  fann_set_activation_steepness_output(cnn, 1);
   cnn->weights[6] = .5;
   cnn->weights[7] = .5;
   cnn->weights[8] = 0;
     
+    inputData = *data->input; outputData = *data->output;
+  printf("\nPerformance on training set committee \n");
+  for(i = 0; i < fann_length_train_data(data); i++, inputData+=2){
+    calc_out = fann_run(cnn, inputData);
+    printf("out actual: %f\toutcalculated: %f \tdiff: %f  \n", outputData[i], *calc_out, (outputData[i]- *calc_out) );
+  }
+
   /*
   printf("\nConnection values ann: \n");
   for(i = 0; i < fann_get_total_connections(ann); i++)
