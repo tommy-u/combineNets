@@ -1,6 +1,6 @@
 CC = gcc
 CFlags = -Wall -lfann -o
-CLEAN = buildCollatzNet
+CLEAN = buildCollatzNet *.net
 
 all:	buildCollatzNet
 

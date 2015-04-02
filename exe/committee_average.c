@@ -1,14 +1,14 @@
 #include "fann.h"
 #include <stdlib.h>
 #include <assert.h>
-#define DEBUGCONNECTIONS
+//#define DEBUGCONNECTIONS
 //#define DEBUG
 /*
   Combining n networks with same input and output size.  
   tommyu@bu.edu
 */
 struct fann* init(unsigned int layers, unsigned int input, unsigned int hid, unsigned int hid2, unsigned int out, struct fann *ann){
-  printf("%d %d %d %d %d \n",layers, input, hid, hid2, out);
+  //  printf("%d %d %d %d %d \n",layers, input, hid, hid2, out);
   ann = fann_create_standard(layers, input, hid, hid2, out);
   fann_set_training_algorithm(ann, FANN_TRAIN_QUICKPROP);
   //  fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
@@ -84,10 +84,9 @@ void copyWeightsAverage(struct fann **nets, int numNets, struct fann *cnn){
 
   int in_h1_con = (layers_cnn[0]+1) * layers_cnn[1];
   int h1_h2_con = (layers_cnn[1]+1) * layers_cnn[2];
-  printf("in_h1_con: %d \n",in_h1_con);
-  printf("h1_h2_con: %d \n",h1_h2_con);
-  printf("layers_cnn[2]: %d\n",layers_cnn[2]);
-  int total_connections = cnn->total_connections;
+  // printf("in_h1_con: %d \n",in_h1_con);
+  // printf("h1_h2_con: %d \n",h1_h2_con);
+  //printf("layers_cnn[2]: %d\n",layers_cnn[2]);
   int cnn_ctr = 0;
 
   //Input to hid1 connections
@@ -101,7 +100,7 @@ void copyWeightsAverage(struct fann **nets, int numNets, struct fann *cnn){
   //h1 to h2 conn
   for (i = in_h1_con; i < in_h1_con + h1_h2_con; i++){
     int net_selector = (i-in_h1_con) / ((layers_cnn[1]+1) * component_nets[0][2]);
-    printf("cnn[%d] \n",i);
+    // printf("cnn[%d] \n",i);
     if ( ((i-in_h1_con) % (layers_cnn[1]+1)) == layers_cnn[1]){
 #ifdef DEBUGCONNECTIONS
       printf("bias \n");
@@ -123,22 +122,21 @@ void copyWeightsAverage(struct fann **nets, int numNets, struct fann *cnn){
   int in_h2_con = in_h1_con + h1_h2_con;
   int num_output = layers_cnn[3];
   int num_hid2 = layers_cnn[2]+1;
-  printf("num_hid2: %d \n", num_hid2);
+  //  printf("num_hid2: %d \n", num_hid2);
   for(i=0; i<num_output; i++){
     for(j=0; j<num_hid2; j++){
-      printf("j: %d \n",j);
+      //  printf("j: %d \n",j);
 
       if (j % num_hid2 == num_hid2-1){
-        printf("this is a bias connection \n");
+	//  printf("this is a bias connection \n");
         cnn->weights[(i*(layers_cnn[2]+1))+in_h2_con+j] = 0;
       }else if(j % num_output == i){
-        printf("connect\n");
+	//  printf("connect\n");
         cnn->weights[(i*(layers_cnn[2]+1))+in_h2_con+j] = 1/(float)numNets;
       }else{
-        printf("not connected \n");
+ //       printf("not connected \n");
         cnn->weights[(i*(layers_cnn[2]+1))+in_h2_con+j] = 0;
       }
-
     }
   }
 
