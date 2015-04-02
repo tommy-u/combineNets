@@ -11,5 +11,5 @@ do
     mv collatz.net $i.net
 done
 
-../exe/combine collatz.train *.net
-../exe/eval_samples collatz.train combined.net 
+../vote/combine collatz.train *.net
+../vote/eval_samples collatz.train combined.net 

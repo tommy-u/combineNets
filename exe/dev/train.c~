@@ -7,7 +7,7 @@ void build_committee_average(struct fann *ann, struct fann *bnn, struct fann *cn
 }
 int main(){
   const unsigned int num_input = 2;
-  const unsigned int hid = 5;
+  const unsigned int hid = 1;
   const unsigned int num_output = 1;
   const unsigned int num_layers = 3;
   const float desired_error = (const float) 0.001;
