@@ -1,8 +1,8 @@
-CC = gcc
+k-CC = gcc
 FLAGS = -Wall -lfann
 
 all: buildNets bootstrap
 %: %.c
-	$(CC) $^ $(FLAGS) -o $@
+	$(k-CC) $^ $(FLAGS) -o $@
 clean: 
 	rm buildNets bootstrap
