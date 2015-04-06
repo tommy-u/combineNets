@@ -7,11 +7,11 @@ void build_committee_average(struct fann *ann, struct fann *bnn, struct fann *cn
 }
 int main(){
   const unsigned int num_input = 3;
-  const unsigned int hid = 3;
+  const unsigned int hid = 2;
   const unsigned int num_output = 3;
   const unsigned int num_layers = 3;
   const float desired_error = (const float) 0.001;
-  const unsigned int max_epochs = 55;
+  const unsigned int max_epochs = 5;
   const unsigned int epochs_between_reports = 0;
   struct fann_train_data *data = fann_read_train_from_file("3copy.dat");
   struct fann *ann = fann_create_standard(num_layers, num_input, hid, num_output);
