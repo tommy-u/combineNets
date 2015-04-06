@@ -1,8 +1,6 @@
 #!/bin/bash
 #Given train file, bootstrap n resamples, build m nets for each bootstrap
-cd ../../make clean
-make
-cd examples/bag
+
 if [ "$#" -ne 3 ]; then
     echo "usage ./run <train> <num bootstraps> <num nets per bootstrap>"
     echo "Illegal number of parameters, exiting"
@@ -14,6 +12,7 @@ numBoots=$2
 numNets=$3
 mkdir boots
 mkdir nets
+
 echo grab $train
 for ((i=0; i<$numBoots; i++))
 do

@@ -1,3 +1,0 @@
-all: buildNets fann_boo
-%: kernels/crt0.s kernels/%.c
-        $(k-CC) $^ $(k-CFLAGS) $(k-LDFLAGS) -o $@

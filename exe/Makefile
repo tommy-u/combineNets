@@ -1,18 +1,11 @@
 CC = gcc
-CFlags = -Wall -lfann -o
-CLEAN = combine eval_bits eval_samples committee_average *.net 
+Flags = -Wall -lfann -o
+CLEAN = combine eval_bits eval_samples committee_average eval_n_in_m_out *.net 
 
-all:	combine eval_bits eval_samples committee_average
+all:	combine eval_bits eval_samples committee_average eval_n_in_m_out
 
-combine:
-	$(CC) $@.c $(CFlags) $@
-eval_bits:
-	$(CC) $@.c $(CFlags) $@
-eval_samples:
-	$(CC) $@.c $(CFlags) $@
-committee_average:
-	$(CC) $@.c $(CFlags) $@
-
+%: %.c
+	$(CC) $^ $(Flags) $@
 clean:
 	$(RM) $(CLEAN)
 cn:
