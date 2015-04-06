@@ -10,5 +10,6 @@ do
     ./buildCollatzNet
     mv collatz.net $i.net
 done
-../exe/committee_average *.net
-../exe/eval_samples collatz.train avg.net 
+
+../exe/combine collatz.train *.net
+../exe/eval_samples collatz.train combined.net 

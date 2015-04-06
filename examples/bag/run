@@ -1,0 +1,30 @@
+#!/bin/bash
+#Given train file, bootstrap n resamples, build m nets for each bootstrap
+
+if [ "$#" -ne 3 ]; then
+    echo "usage ./run <train> <num bootstraps> <num nets per bootstrap>"
+    echo "Illegal number of parameters, exiting"
+    exit 1
+fi
+rm -rf boots nets
+train=$1
+numBoots=$2
+numNets=$3
+mkdir boots
+mkdir nets
+
+echo grab $train
+for ((i=0; i<$numBoots; i++))
+do
+    echo make another boot
+    for((j=0; j<$numNets; j++))
+    do
+	echo make another net
+    done
+#    ./buildCollatzNet
+#    mv collatz.net $i.net
+done
+echo combine nets
+echo evaluate
+#../exe/committee_average *.net
+#../exe/eval_samples collatz.train avg.net 
